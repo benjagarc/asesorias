@@ -74,12 +74,14 @@ public:
         std::cout << nombre << " dice: ¡Guau guau!" << std::endl;
     }
 
-    // Sobrescritura (override) del método virtual de Animal
-    void hacerSonido() const override {
+    // Sobrescritura del metodo virtual de Animal
+    // En C++98 simplemente se repite la misma firma virtual,
+    // sin la palabra 'override' (que es de C++11).
+    void hacerSonido() const {
         std::cout << nombre << " Ladra." << std::endl;
     }
 
-    virtual void moverse() const override {
+    virtual void moverse() const {
          std::cout << nombre << "camina en 4 patas." << std::endl;
     }
 
@@ -96,11 +98,11 @@ class Gato : public Animal {
 public:
     Gato(std::string nombre, int edad) : Animal(nombre, edad) {}
 
-    void hacerSonido() const override {
-        std::cout << nombre << " (un gato) maulla: ¡Miau!" << std::endl;
+    void hacerSonido() const {
+        std::cout << nombre << " (un gato) maulla: Miau!" << std::endl;
     }
     
-    virtual void moverse() const override {
+    virtual void moverse() const {
          std::cout << nombre << "camina en 4 patas." << std::endl;
     }
 

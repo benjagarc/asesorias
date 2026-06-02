@@ -38,7 +38,8 @@ class EscucharMusica: public Pasatiempo {
             cout << "Destructor de pasatiempo: " << nombre << endl;
         }
 
-        virtual void mostrarLugar() const override {
+        // Sobrescritura en C++98: misma firma, sin 'override'
+        void mostrarLugar() const {
             cout << "Lugar para escuichar musica: " << lugar << endl;
         }
 

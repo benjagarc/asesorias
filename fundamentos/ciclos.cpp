@@ -114,22 +114,24 @@ int main() {
         cout << endl;
     }
 
-    // ========== FOREACH (con arreglos) ==========
-    cout << "\n===== FOREACH (range-based for) =====" << endl;
+    // ========== CICLO FOR CON ÍNDICE (estilo C++98) ==========
+    // El range-based for (for : ) es de C++11.
+    // En C++98 se usa la forma clásica con índice.
+    cout << "\n===== FOR CON ÍNDICE (equivalente al foreach) =====" << endl;
 
     int numeros[] = {10, 20, 30, 40, 50};
+    int tamano = sizeof(numeros) / sizeof(numeros[0]);
+
     cout << "Recorriendo arreglo: ";
-    for (int n : numeros) {
-        cout << n << " ";
+    for (int i = 0; i < tamano; i++) {
+        cout << numeros[i] << " ";
     }
     cout << endl;
 
-    // Usando auto para deducir el tipo
-    cout << "Usando auto: ";
-    for (auto n : numeros) {
-        cout << n << " ";
-    }
-    cout << endl;
+    // Nota: En C++11 se puede escribir como:
+    //   for (int n : numeros) { cout << n << " "; }
+    //   for (auto n : numeros) { cout << n << " "; }
+    // En C++98/03 se usa el for con índice (mostrado arriba).
 
     return 0;
 }

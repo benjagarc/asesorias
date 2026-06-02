@@ -6,6 +6,8 @@ using namespace std;
 // ========== DECLARACIÓN (PROTOTIPO) DE FUNCIONES ==========
 // Se declaran antes de main() para que el compilador las conozca
 int sumar(int a, int b);
+int cuadrado(int n);
+int sumaSimple(int a, int b);
 double calcularAreaCirculo(double radio);
 bool esPar(int numero);
 void saludar(string nombre);
@@ -100,12 +102,11 @@ int main() {
 
     imprimirSeparador();
 
-    // Funciones lambda (anónimas) - C++11 en adelante
-    auto cuadrado = [](int n) -> int { return n * n; };
-    cout << "Lambda - cuadrado de 6: " << cuadrado(6) << endl;
-
-    auto sumaLambda = [](int a, int b) { return a + b; };
-    cout << "Lambda - suma de 4 y 9: " << sumaLambda(4, 9) << endl;
+    // Funciones nombradas en lugar de lambdas (C++98/03)
+    // En C++11 se pueden escribir como: auto f = [](int n) { return n*n; };
+    // En C++98 se usa una funcion nombrada con prototipo al inicio del archivo.
+    cout << "Funcion cuadrado(6): " << cuadrado(6) << endl;
+    cout << "Funcion sumaSimple(4, 9): " << sumaSimple(4, 9) << endl;
 
     return 0;
 }
@@ -204,4 +205,17 @@ int sumarArreglo(int arr[], int tamano) {
         suma += arr[i];
     }
     return suma;
+}
+
+// ========== EQUIVALENTES C++98 DE LAS LAMBDAS ==========
+// En C++11 se escriben como funciones anónimas (lambda):
+//   auto cuadrado = [](int n) -> int { return n * n; };
+// En C++98/03 se declaran como funciones normales con nombre.
+
+int cuadrado(int n) {
+    return n * n;
+}
+
+int sumaSimple(int a, int b) {
+    return a + b;
 }

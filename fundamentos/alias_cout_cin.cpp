@@ -17,16 +17,18 @@ int main() {
     // ============================================================
     // FORMA 2: Referencias - Crear un "alias" como referencia al objeto
     // ============================================================
-    auto& out = std::cout;   // out es una referencia a std::cout
-    auto& in = std::cin;     // in es una referencia a std::cin
+    // En C++98 se escribe el tipo explicitamente: std::ostream& y std::istream&
+    // En C++11 se puede usar 'auto&' para deducir el tipo automaticamente.
+    std::ostream& out = std::cout;   // out es una referencia a std::cout
+    std::istream& in  = std::cin;    // in  es una referencia a std::cin
 
-    out << "\n=== FORMA 2: Referencias ===" << endl;
+    out << "\n=== FORMA 2: Referencias ==="  << endl;
     out << "'out' apunta al mismo objeto que std::cout" << endl;
-    out << "Escribe un número: ";
+    out << "Escribe un numero: ";
 
     int numero;
-    in >> numero;            // Lee desde std::cin a través de la referencia
-    out << "Leíste: " << numero << endl;
+    in  >> numero;            // Lee desde std::cin a traves de la referencia
+    out << "Leiste: " << numero << endl;
 
     // ============================================================
     // FORMA 3: Punteros - Apuntar al objeto de flujo
@@ -43,16 +45,23 @@ int main() {
     *pOut << "Leíste: " << palabra << endl;
 
     // ============================================================
-    // FORMA 4: Alias de tipo con decltype (útil en plantillas)
+    // FORMA 4: Tipo explicito con typedef (C++98)
     // ============================================================
-    using TipoCout = decltype(std::cout);   // TipoCout = std::ostream
-    using TipoCin = decltype(std::cin);     // TipoCin = std::istream
+    // En C++11 se puede usar 'decltype' para deducir el tipo:
+    //   using TipoCout = decltype(std::cout);  // C++11
+    // En C++98 se usa typedef con el nombre del tipo directamente.
+    typedef std::ostream TipoCout;   // TipoCout es el mismo tipo que std::ostream
+    typedef std::istream TipoCin;    // TipoCin  es el mismo tipo que std::istream
 
-    TipoCout& salida = std::cout;           // Referencia usando el alias de tipo
-    TipoCin& entrada = std::cin;
+    TipoCout& salida  = std::cout;
+    TipoCin&  entrada = std::cin;
 
-    salida << "\n=== FORMA 4: Alias de tipo con decltype ===" << endl;
-    salida << "TipoCout es el mismo tipo que std::ostream&" << endl;
+    salida << "\n=== FORMA 4: Alias de tipo con typedef (C++98) ===" << endl;
+    salida << "TipoCout es el mismo tipo que std::ostream" << endl;
+    salida << "Escribe un numero (prueba typedef): ";
+    int numTypedef;
+    entrada >> numTypedef;
+    salida << "Leiste: " << numTypedef << endl;
 
     // ============================================================
     // FORMA 5: Macros (NO recomendado, solo para conocimiento)
@@ -64,23 +73,18 @@ int main() {
     IMPRIMIR << "Las macros son reemplazos de texto en precompilación" << endl;
 
     // ============================================================
-    // FORMA 6: Namespace alias + using
-    // ============================================================
-    namespace io = std;   // Alias del namespace std
-
-    io::cout << "\n=== FORMA 6: Alias de namespace ===" << endl;
-    io::cout << "Puedes escribir 'io::cout' en vez de 'std::cout'" << endl;
-
-    // ============================================================
     // RESUMEN
     // ============================================================
     cout << "\n=== RESUMEN ===" << endl;
-    cout << "1. using std::cout;      -> Más común y recomendado" << endl;
-    cout << "2. auto& out = cout;     -> Referencia al objeto" << endl;
-    cout << "3. ostream* p = &cout;   -> Puntero al objeto" << endl;
-    cout << "4. using Tipo = decltype(cout); -> Alias de tipo" << endl;
-    cout << "5. #define IMPRIMIR cout -> Macro (evitar)" << endl;
-    cout << "6. namespace io = std;   -> Alias de namespace" << endl;
+    cout << "1. using std::cout;        -> Mas comun y recomendado (C++98)" << endl;
+    cout << "2. std::ostream& out=cout; -> Referencia explicita (C++98)" << endl;
+    cout << "3. ostream* p = &cout;     -> Puntero al objeto (C++98)" << endl;
+    cout << "4. typedef std::ostream T; -> Alias de tipo (C++98)" << endl;
+    cout << "5. #define IMPRIMIR cout   -> Macro (evitar, C++98)" << endl;
+    cout << "---" << endl;
+    cout << "Nota: En C++11 tambien existen:" << endl;
+    cout << "  auto& out = cout;        -> Deduccion de tipo automatica" << endl;
+    cout << "  using T = decltype(cout);-> Alias moderno" << endl;
 
     return 0;
 }
