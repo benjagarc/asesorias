@@ -1,4 +1,4 @@
-# prueba-herencia.cpp — Migración a Borland C++
+# prueba-herencia.cpp — Compatible con Dev-C++ / GCC
 
 ## Propósito del programa
 
@@ -6,19 +6,19 @@ Demuestra herencia con un ejemplo cotidiano: **pasatiempos**. Muestra cómo la c
 
 ---
 
-## Cambios realizados
+## Adaptaciones para Dev-C++ / GCC
 
-| Código original (C++ moderno) | Código Borland C++ | Razón |
+| Código C++ moderno | Código en este archivo | Razón |
 |---|---|---|
-| `#include <iostream>` + `#include <string>` | `#include <iostream.h>` + `#include <string.h>` | Borland requiere `.h`; `string.h` provee `strcpy()` |
-| `using namespace std;` | *(eliminado)* | Con `<iostream.h>`, `cout` y `endl` son globales |
-| `std::string nombre;` | `char nombre[50];` | `std::string` no disponible con `<iostream.h>` |
+| `#include <string>` + `std::string nombre;` | `#include <cstring>` + `char nombre[50];` | Se evita `std::string` para compatibilidad C++98 |
 | `std::string lugar;` | `char lugar[100];` | Idem |
 | `std::string genero;` | `char genero[50];` | Idem |
-| `Pasatiempo(string nom, string lug) : nombre(nom), lugar(lug)` | `Pasatiempo(const char* nom, const char* lug) { strcpy(nombre,nom); strcpy(lugar,lug); }` | `char[]` no se puede inicializar con lista `: nombre(nom)`; se usa `strcpy()` en el cuerpo |
+| `Pasatiempo(string n, string l) : nombre(n), lugar(l)` | `Pasatiempo(const char* n, const char* l) { strcpy(nombre,n); strcpy(lugar,l); }` | `char[]` no se puede inicializar con lista ``: nombre(n)``; se usa `strcpy()` en el cuerpo |
 | `EscucharMusica(string n, string l, string g) : Pasatiempo(n,l), genero(g)` | `EscucharMusica(const char* n, const char* l, const char* g) : Pasatiempo(n,l) { strcpy(genero,g); }` | Idem |
-| `std::string` en el tipo de retorno implícito | `char[]` gestionado manualmente | Sin cambios adicionales necesarios en la lógica |
-| `void mostrarLugar() const override` | `void mostrarLugar() const` | `override` es de C++11; se omite en Borland |
+| `void mostrarLugar() const override` | `void mostrarLugar() const` | `override` es de C++11; se omite para compatibilidad C++98 |
+| `void mostrarGenero()` sin `const` | `void mostrarGenero() const` | **Agregado `const`:** el método solo lee `genero`; `const` permite llamarlo sobre objetos constantes y es consistente con el resto de métodos de lectura |
+| Métodos definidos dentro de la clase (`inline`) | Declaración dentro + implementación fuera con `::` | **Estilo del proyecto:** `void Pasatiempo::mostrarInfo()\n{\n    ...\n}` — llave en línea separada (Allman style) |
+| `    protected:` / `    public:` con sangría extra | `protected:` / `public:` sin sangría | **Estilo del proyecto:** las etiquetas de acceso van al mismo nivel que `class` |
 
 ---
 
@@ -43,14 +43,35 @@ Pasatiempo(const char* nom) {
 EscucharMusica("escuchar musica", "donde sea", "rock");
 ```
 
+### Métodos `const` de solo lectura
+Cuando un método **no modifica** ningún atributo del objeto, se declara como `const`. Esto tiene dos ventajas:
+1. Puede llamarse sobre objetos declarados como `const`.
+2. Comunica claramente al lector que el método es de solo lectura.
+
+```cpp
+// Sin const: no puede llamarse en objetos constantes
+void mostrarGenero();
+
+// Con const: correcto para un metodo de solo lectura
+void mostrarGenero() const;
+```
+
+Todos los métodos de este archivo que solo leen atributos (`mostrarInfo`, `mostrarLugar`, `mostrarGenero`) son `const` por consistencia.
+
 ### La lista de inicialización del constructor base `: Pasatiempo(nom, lug)`
 Esta parte **sí se mantiene** incluso con `char[]`. La lista de inicialización llama al constructor de la clase base pasando los parámetros. El constructor base luego usa `strcpy()` para copiar las cadenas en sus propios `char[]`.
 
 ---
 
-## Cómo compilar en Borland C++ 5.x
+## Cómo compilar en Dev-C++
 
-1. Abrir **Borland C++ IDE**
-2. Crear un nuevo proyecto de tipo **Console Application**
+1. Abrir **Dev-C++**
+2. Ir a **File → New → Project → Console Application**
 3. Agregar `prueba-herencia.cpp` al proyecto
-4. Presionar **F9** para compilar y ejecutar
+4. Presionar **F11** para compilar y ejecutar
+
+**Desde terminal (GCC):**
+```bash
+g++ -Wall -std=c++98 prueba-herencia.cpp -o prueba-herencia
+./prueba-herencia
+```

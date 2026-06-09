@@ -1,4 +1,4 @@
-# herencia.cpp — Migración a Borland C++
+# herencia.cpp — Compatible con Dev-C++ / GCC
 
 ## Propósito del programa
 
@@ -7,24 +7,21 @@ Demuestra el concepto de **herencia en POO** (Programación Orientada a Objetos)
 - Clases derivadas (`Perro`, `Gato`) que heredan y sobrescriben métodos
 - Métodos propios de cada clase derivada
 - **Polimorfismo** mediante punteros a la clase base y métodos `virtual`
-- Destructores virtuales (buena práctica en jerarquías de herencia)
+- Destructores virtuales en **todas** las clases de la jerarquía (base y derivadas)
 
 ---
 
-## Cambios realizados
+## Adaptaciones para Dev-C++ / GCC
 
-| Código original (C++ moderno) | Código Borland C++ | Razón |
+| Código C++ moderno | Código en este archivo | Razón |
 |---|---|---|
-| `#include <iostream>` + `#include <string>` | `#include <iostream.h>` + `#include <string.h>` | Borland requiere `.h`; `string.h` provee `strcpy()` |
-| `std::string nombre;` | `char nombre[50];` | `std::string` no disponible; `char[]` con tamaño fijo |
-| `std::string raza;` | `char raza[50];` | Idem |
-| `std::cout`, `std::endl` | `cout`, `endl` | Sin prefijo `std::` con `<iostream.h>` |
-| `Animal(std::string nombre, int edad) : nombre(nombre), edad(edad)` | `Animal(const char* nom, int ed) { strcpy(nombre, nom); edad = ed; }` | Dos cambios: parámetro `const char*`; inicializador de lista → asignación en cuerpo |
-| `: nombre(nombre)` (inicializador de lista para string) | `strcpy(nombre, nom);` | Los inicializadores de lista para `char[]` no funcionan así; se usa `strcpy()` del cuerpo |
-| `std::string` en parámetros | `const char*` | Convención para pasar cadenas de solo lectura a funciones |
-| `"¡Guau guau!"` | `"Guau guau!"` | Sin `¡` (carácter no ASCII básico) |
-| `virtual void hacerSonido() const override` | `void hacerSonido() const` | `override` es de C++11; en Borland se omite, la semántica es la misma |
-| Código comentado en `main` | Se descomentó el código | Se aprovechó para mostrar el ejemplo completo funcionando |
+| `#include <string>` + `std::string nombre;` | `#include <cstring>` + `char nombre[50];` | Se evita `std::string` para máxima compatibilidad con GCC en modo C++98 |
+| `this->nombre = nombre;` | `strcpy(this->nombre, nom);` | `char[]` no admite asignación directa; `strcpy()` copia el contenido |
+| `Animal(string n, int e) : nombre(n)` | `Animal(const char* n, int e) { strcpy(nombre, n); }` | Lista de inicialización con `char[]` no funciona así; se asigna en el cuerpo |
+| `std::string` en parámetros | `const char*` | Convención para pasar cadenas de solo lectura |
+| `virtual void hacerSonido() const override` | `void hacerSonido() const` | `override` es de C++11; se omite para compatibilidad C++98 |
+| Clase `Gato` sin destructor | `virtual ~Gato() { ... }` | **Agregado:** destructor virtual en todas las clases derivadas para garantizar que el destructor correcto se llame mediante punteros `Animal*` |
+| Métodos definidos dentro de la clase (`inline`) | Declaración dentro + implementación fuera con `::` | **Estilo del proyecto:** `void Animal::comer()\n{\n    ...\n}` — llave en línea separada (Allman style) |
 
 ---
 
@@ -46,16 +43,29 @@ Cuando una función recibe una cadena que no va a modificar, se declara como `co
 Los métodos `virtual` y el polimorfismo mediante punteros a clase base son características de C++ desde sus primeras versiones. Son **100% compatibles** con Borland C++ 5.x sin ningún cambio.
 
 ### Sin `override`
-La palabra clave `override` fue introducida en **C++11** para detectar errores al sobrescribir métodos virtuales. Borland C++ 5.x no la reconoce. La omisión no afecta el comportamiento: el polimorfismo funciona igual gracias a la palabra `virtual` en la clase base.
+La palabra clave `override` fue introducida en **C++11**. Se omite en este archivo para mantener compatibilidad con el estándar C++98/03. El polimorfismo funciona igual gracias a `virtual` en la clase base.
 
-### Destructor `virtual`
-Es una buena práctica declarar el destructor de la clase base como `virtual`. Esto garantiza que cuando se elimina un objeto derivado a través de un puntero a la clase base, se llama el destructor correcto. Esta práctica es igual en todas las versiones de C++.
+### Destructor `virtual` en todas las clases derivadas
+Es obligatorio declarar el destructor de la clase base como `virtual` **y recomendable** hacerlo también en las clases derivadas. Esto garantiza que al destruir un `Gato` o `Perro` a través de un puntero `Animal*`, se llame el destructor correcto en toda la cadena de herencia:
+
+```cpp
+Animal* a = new Gato("Michi", 3);
+delete a;  // Sin virtual ~Gato(), el destructor de Gato no se llamaria
+```
+
+Las tres clases (`Animal`, `Perro`, `Gato`) ahora declaran su destructor con `virtual` y muestran un mensaje en consola para facilitar el seguimiento del ciclo de vida de los objetos.
 
 ---
 
-## Cómo compilar en Borland C++ 5.x
+## Cómo compilar en Dev-C++
 
-1. Abrir **Borland C++ IDE**
-2. Crear un nuevo proyecto de tipo **Console Application**
-3. Agregar `herencia.cpp` al proyecto
-4. Presionar **F9** para compilar y ejecutar
+1. Abrir **Dev-C++**
+2. Ir a **File → New → Project → Console Application**
+3. Agregar `herencia.cpp` al proyecto (o abrir el archivo directamente)
+4. Presionar **F11** para compilar y ejecutar
+
+**Desde terminal (GCC):**
+```bash
+g++ -Wall -std=c++98 herencia.cpp -o herencia
+./herencia
+```

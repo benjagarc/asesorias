@@ -70,8 +70,9 @@ void Producto::mostrar()
    En Borland: sprintf() de <stdio.h> para construir el string en un buffer */
 void Producto::toCSV(char* buffer, int bufSize)
 {
-    sprintf(buffer, "%d,%s,%.2f", codigo, nombre, precio);
-    /* sprintf escribe la cadena formateada en 'buffer' */
+    /* snprintf limita la escritura a bufSize bytes, evitando buffer overflow.
+       bufSize es el parametro ya declarado en la firma del metodo. */
+    snprintf(buffer, bufSize, "%d,%s,%.2f", codigo, nombre, precio);
     /* %.2f -> float con 2 decimales */
 }
 

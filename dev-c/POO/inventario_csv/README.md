@@ -1,4 +1,4 @@
-# inventario_csv.cpp — Migración a Borland C++
+# inventario_csv.cpp — Compatible con Dev-C++ / GCC
 
 ## Propósito del programa
 
@@ -11,50 +11,48 @@ Sistema **CRUD (Crear, Leer, Actualizar, Eliminar)** de inventario usando un arc
 
 ---
 
-## Cambios realizados
+## Adaptaciones para Dev-C++ / GCC
 
-Este es el archivo con **más cambios estructurales** de toda la migración:
+Este archivo utiliza técnicas de C clásico (`char[]`, `strtok`, `sprintf`) compatibles con GCC/MinGW en Dev-C++:
 
-| Código original (C++ moderno) | Código Borland C++ | Razón |
+| Código C++ moderno | Código en este archivo | Razón |
 |---|---|---|
-| `#include<iostream>` | `#include <iostream.h>` | Borland requiere `.h` |
-| `#include<fstream>` | `#include <fstream.h>` | Borland requiere `.h` |
-| `#include<string>` | `#include <string.h>` | Se usa `strcpy`, `strlen`, `strtok` de C |
-| `#include<sstream>` | `#include <stdio.h>` | `sstream` no existe en Borland; se usa `sprintf` |
-| `#include<cstdlib>` | `#include <stdlib.h>` | Nombre con `.h` para Borland |
-| `using namespace std;` | *(eliminado)* | Con `iostream.h`, los símbolos son globales |
-| `string nombre;` en clase | `char nombre[100];` | `std::string` no disponible |
+| `#include <iostream>` | `#include <iostream>` | Estándar GCC sin `.h` |
+| `#include <fstream>` | `#include <fstream>` | Estándar GCC sin `.h` |
+| `#include <string>` | `#include <cstring>` | Se usa `strcpy`, `strlen`, `strtok` de C |
+| `#include <sstream>` | `#include <cstdio>` | `sstream` existe pero se usa `snprintf` para máxima compatibilidad |
+| `string nombre;` en clase | `char nombre[100];` | `std::string` se evita para compatibilidad C++98 |
 | `string nombreArchivo;` en clase | `char nombreArchivo[200];` | Idem |
-| `ostringstream oss; oss << codigo << "," << nombre...` | `sprintf(buffer, "%d,%s,%.2f", codigo, nombre, precio)` | `ostringstream` no existe; `sprintf` escribe texto formateado en un buffer |
-| `return oss.str();` | Escribe en `char* buffer` pasado como parámetro | `sprintf` no devuelve string; escribe en un buffer externo |
-| `string toCSV()` devuelve string | `void toCSV(char* buffer, int bufSize)` | Escribe en buffer en lugar de retornar string |
-| `stringstream ss(linea); getline(ss, parte, ',')` | `strtok(copia, ",")` | `sstream` no existe; `strtok` divide una cadena en tokens |
+| `ostringstream oss; oss << codigo << ","...` | `snprintf(buffer, bufSize, "%d,%s,%.2f", ...)` | **`snprintf` con límite de buffer** en lugar de `sprintf` sin límite |
+| `return oss.str();` | Escribe en `char* buffer` pasado como parámetro | `snprintf` escribe en un buffer externo |
+| `string toCSV()` devuelve string | `void toCSV(char* buffer, int bufSize)` | Escribe en buffer; `bufSize` se usa en `snprintf` para evitar overflow |
+| `stringstream ss(linea); getline(ss, parte, ',')` | `strtok(copia, ",")` | Técnica de C clásico para dividir cadenas en tokens |
 | `linea == ""` | `strlen(linea) == 0` | `char[]` no tiene operador `==` con literales |
-| `string contenidoNuevo = ""; contenidoNuevo += linea + "\n"` | `char lineas[MAX_LINEAS][300];` + bucle de copia | Sin concatenación de strings; se usa un arreglo 2D de `char` |
+| `string contenidoNuevo += linea + "\n"` | `char lineas[MAX_LINEAS][300];` + bucle de copia | Sin concatenación de strings; se usa arreglo 2D de `char` |
 | `ifstream archivo(nombreArchivo.c_str())` | `ifstream archivo(nombreArchivo)` | `char[]` ya es `char*`; `.c_str()` innecesario |
-| `cin.ignore(numeric_limits<streamsize>::max(), '\n')` | `cin.ignore(255, '\n')` | `numeric_limits` no existe en Borland |
-| `getline(cin, nombre)` | `cin.getline(nombre, 100)` | Versión de método con `char[]` |
+| `cin.ignore(numeric_limits<streamsize>::max(), '\n')` | `cin.ignore(255, '\n')` | Evita depender de `<limits>` |
+| `getline(cin, nombre)` | `cin.getline(nombre, 100)` | Versión del método para `char[]` |
 
 ---
 
 ## Por qué se usó cada técnica
 
-### `sprintf()` en lugar de `ostringstream`
-`ostringstream` (de `<sstream>`) es una clase que construye un `string` paso a paso con el operador `<<`. En Borland, `<sstream>` no existe. `sprintf()` de `<stdio.h>` hace lo mismo pero escribiendo en un buffer de `char`:
+### `snprintf()` en lugar de `sprintf()`
+`sprintf()` escribe en un buffer sin verificar su tamaño, lo que puede causar **buffer overflow** si el contenido es demasiado largo. `snprintf()` recibe el tamaño máximo como segundo argumento:
 
 ```cpp
-// C++ moderno:
-ostringstream oss;
-oss << codigo << "," << nombre << "," << precio;
-string resultado = oss.str();
-
-// Borland:
+// Antes (inseguro - no verifica el tamaño del buffer):
 char buffer[300];
-sprintf(buffer, "%d,%s,%.2f", codigo, nombre, precio);
-// buffer ahora contiene "101,Leche,25.50"
+springf(buffer, "%d,%s,%.2f", codigo, nombre, precio);
+
+// Ahora (seguro - respeta el tamaño declarado):
+snprintf(buffer, bufSize, "%d,%s,%.2f", codigo, nombre, precio);
+// buffer ahora contiene "101,Leche,25.50" y no puede exceder bufSize bytes
 ```
 
-`sprintf` usa **especificadores de formato** al estilo de `printf`:
+El parámetro `bufSize` ya existía en la firma `void toCSV(char* buffer, int bufSize)` pero era ignorado. Ahora se usa correctamente en `snprintf`.
+
+`snprintf` usa los mismos **especificadores de formato** que `printf`:
 - `%d` → entero (`int`)
 - `%s` → cadena (`char*`)
 - `%.2f` → flotante con 2 decimales
@@ -83,12 +81,18 @@ La función global `getline(istream&, string&)` requiere `std::string`. Con `cha
 
 ---
 
-## Cómo compilar en Borland C++ 5.x
+## Cómo compilar en Dev-C++
 
-1. Abrir **Borland C++ IDE**
-2. Crear un nuevo proyecto de tipo **Console Application**
+1. Abrir **Dev-C++**
+2. Ir a **File → New → Project → Console Application**
 3. Agregar `inventario_csv.cpp` al proyecto
 4. Crear un archivo `productos.csv` vacío en la carpeta del proyecto
-5. Presionar **F9** para compilar y ejecutar
+5. Presionar **F11** para compilar y ejecutar
+
+**Desde terminal (GCC):**
+```bash
+g++ -Wall -std=c++98 inventario_csv.cpp -o inventario_csv
+./inventario_csv
+```
 
 > **Nota:** El archivo `productos.csv` debe estar en el mismo directorio donde se ejecuta el programa.
